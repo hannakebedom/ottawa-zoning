@@ -130,45 +130,20 @@ def create_timeline_map(features):
     folium.LayerControl().add_to(m)
     m.save("data/map-time.html")
 
-
-
-
-
-
-
-
-
-
 def create_zone_map(features):
     '''creates a folium map'''
     m = folium.Map(location=OTTAWA, zoom_start=13)
     fg_all_zones = folium.FeatureGroup(name="All Zones")
 
-    dates = defaultdict(int)
-    bylaw_nums = defaultdict(int)
-
-
     for feature in features:
         coordinates = convert_crs(feature.geometry['rings'][0])
-        id = feature.attributes["FID"]
         date = feature.attributes["CONS_DATE"]
         bylaw_num = feature.attributes["BYLAW_NUM"]
         zone = feature.attributes["PARENTZONE"]
-        history = feature.attributes["HISTORY"]
 
-        dates[date] += 1
-        bylaw_nums[bylaw_num] += 1
-        date_obj = date
-
-        # color = get_color(zone)
-        # polygon = folium.Polygon(locations=coordinates, color=color, fill=True, fill_color=color, fill_opacity=0.5)
-        # polygon.add_to(fg_all_zones)
-        
-        # Intersection of Carp Rd. and Donald B. Munro Dr.
-        # id: 2018-171
-        # history: 2012-033, 2013-058
-    print("dates", dates)
-    print("bylaw nums", bylaw_num)
+        color = get_color(zone)
+        polygon = folium.Polygon(locations=coordinates, color=color, fill=True, fill_color=color, fill_opacity=0.5)
+        polygon.add_to(fg_all_zones)
 
     fg_all_zones.add_to(m)
     folium.LayerControl().add_to(m)
@@ -180,8 +155,8 @@ def main():
     features = get_features()
     print("retrieved " + str(len(features)) + " features")
     # create a map from given features
-    # create_zone_map(features)
-    create_timeline_map(features)
+    create_zone_map(features)
+    # create_timeline_map(features)
 
 if __name__ == "__main__":
     main()
