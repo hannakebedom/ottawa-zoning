@@ -1,13 +1,9 @@
 # https://developers.arcgis.com/python/guide/working-with-feature-layers-and-features/
 
 import folium
-from arcgis.gis import GIS
 from arcgis.features import FeatureLayer
-from arcgis.geometry import Polygon
 from pyproj import Transformer
-from folium.plugins import MarkerCluster, FeatureGroupSubGroup
-from collections import defaultdict
-from datetime import datetime
+from folium.plugins import Geocoder
 
 OTTAWA = [45.4215, -75.6972]
 
@@ -127,6 +123,7 @@ def create_timeline_map(features):
     fg_2020.add_to(m)
     fg_2021.add_to(m)
 
+    Geocoder().add_to(m)
     folium.LayerControl().add_to(m)
     m.save("data/map-time.html")
 
@@ -137,8 +134,6 @@ def create_zone_map(features):
 
     for feature in features:
         coordinates = convert_crs(feature.geometry['rings'][0])
-        date = feature.attributes["CONS_DATE"]
-        bylaw_num = feature.attributes["BYLAW_NUM"]
         zone = feature.attributes["PARENTZONE"]
 
         color = get_color(zone)
@@ -146,6 +141,7 @@ def create_zone_map(features):
         polygon.add_to(fg_all_zones)
 
     fg_all_zones.add_to(m)
+    Geocoder().add_to(m)
     folium.LayerControl().add_to(m)
     m.save("data/map.html")
 
