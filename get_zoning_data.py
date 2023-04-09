@@ -35,6 +35,7 @@ def convert_crs(coordinates, fro="EPSG:3857", to="EPSG:4326"):
     return result
 
 def get_color(zone):
+    '''get map color associated with a particular type of zone'''
     color = "#e5e5e5"
     if zone in RESIDENTIAL_ZONES:
         color = "#00bbf9" # blue
@@ -56,15 +57,13 @@ def get_color(zone):
         color = "#274c77" # navy
     return color
 
-def add_to_layers(zone, polygon, residential):
-    if zone in RESIDENTIAL_ZONES:
-        polygon.add_to(residential)
-
-def area(polygon1, polygon2):
-    '''returns the area of the intersection of two polygons'''
-
 def create_timeline_map(features):
+    '''creates a folium map that divides zones into layers based on consolidation year'''
+
+    # create basemap
     m = folium.Map(location=OTTAWA, zoom_start=13)
+
+    # initialize layers for each year
     fg_2008, features_2008 = folium.FeatureGroup(name="2008"), []
     fg_2008_2009 = folium.FeatureGroup(name="2008/2009", show=False)
     fg_2009, features_2009 = folium.FeatureGroup(name="2009"), []
@@ -94,8 +93,9 @@ def create_timeline_map(features):
     fg_2021, features_2021 = folium.FeatureGroup(name="2021"), []
 
     intermediary_layers = [fg_2008_2009, fg_2009_2010, fg_2010_2011, fg_2011_2012, fg_2012_2013, fg_2013_2014, fg_2014_2015, fg_2015_2016, fg_2016_2017, fg_2017_2018, fg_2018_2019, fg_2019_2020, fg_2020_2021]
-    yearly_layers = [fg_2008, fg_2009, fg_2010, fg_2011, fg_2012, fg_2013, fg_2014, fg_2015, fg_2016, fg_2017, fg_2018, fg_2018, fg_2019, fg_2020, fg_2021]
+    yearly_layers = [features_2008, features_2009, features_2010, features_2011, features_2012, features_2013, features_2014, features_2015, features_2016, features_2017, features_2018, features_2019, features_2020, features_2021]
 
+    # organize features into layers based on consolidation date
     for feature in features:
         coordinates = convert_crs(feature.geometry['rings'][0])
         date = feature.attributes["CONS_DATE"]
@@ -142,108 +142,132 @@ def create_timeline_map(features):
             features_2021.append(coordinates)
             folium.Polygon(locations=coordinates, color="#ea515f", fill=True, fill_color="#ea515f", fill_opacity=0.5).add_to(fg_2021)
 
-    # for i in range(len(yearly_layers)-1):
-    #     layer_a = yearly_layers[i]
-    #     layer_b = yearly_layers[i + 1]
-    #     for f1 in layer_a:
-    #         for f2 in layer_b:
-    #             try:
-    #                 intersection = sutherland_hodgman(f1, f2)
-    #             except Exception as e:
-    #                 print("An error occurred:", e)
-    #             if intersection:
-    #                 print("INTERSECTION!!!!!")
-    #                 folium.Polygon(locations=intersection, color="yellow", fill=True, fill_color="yellow", fill_opacity=0.5).add_to(intermediary_layers[i])
+    # compute intersection of layers from year-to-year (to visalize differences)
+    for i in range(len(yearly_layers)-1):
+        layer_a = yearly_layers[i]
+        layer_b = yearly_layers[i + 1]
+        for f1 in layer_a:
+            for f2 in layer_b:
+                intersection = None
+                try:
+                    p1, p2 = Polygon(f1), Polygon(f2)
+                    if p1.touches(p2) or p2.touches(p1): continue
+                    if p1.intersects(p2):
+                        if p1.within(p2):
+                            intersection = p1
+                        elif p2.within(p1):
+                            intersection = p2
+                        else:
+                            print("applying sutherland hodgman . . .")
+                            area = p1.intersection(p2).area
+                            if area > 0.0000001:
+                                intersection = sutherland_hodgman(p1.exterior.coords, p2.exterior.coords)
+                except Exception as e:
+                    print("an error occurred:", e)
+                if intersection:
+                    print("drawing intersection . . .")
+                    intersection_polygon = Polygon(intersection)
+                    folium.Polygon(locations=intersection_polygon.exterior.coords, color="#25ff3e", fill=True, fill_color="#25ff3e", fill_opacity=0.7).add_to(intermediary_layers[i])
 
-
-    # TODO: find a way to prefilter polygons so we don't have to compare to run the whole algorithm on every pair (check if they intersect based on coords)
-    # TODO: cast coordinates as polygons to ensure that they are clockwise
-    for f1 in features_2008:
-        for f2 in features_2009:
-            intersection = None
-            try:
-                p1, p2 = Polygon(f1), Polygon(f2)
-                if p1.touches(p2) or p2.touches(p1): continue
-                if p1.intersects(p2):
-                    if p1.within(p2):
-                        intersection = p1
-                    elif p2.within(p1):
-                        intersection = p2
-                    else:
-                        print("applying sutherland hodgman . . .")
-                        area = p1.intersection(p2).area
-                        if area > 0.0000001:
-                            intersection = sutherland_hodgman(p1.exterior.coords, p2.exterior.coords)
-            except Exception as e:
-                print("An error occurred:", e)
-            if intersection:
-                intersection_polygon = Polygon(intersection)
-                print("area: ", intersection_polygon.area)
-                # if intersection_polygon.area > 0.0000001 and intersection_polygon.area < 0.0002:
-                folium.Polygon(locations=intersection_polygon.exterior.coords, color="yellow", fill=True, fill_color="yellow", fill_opacity=0.5).add_to(fg_2008_2009)
-                # if intersection.is_empty:
-                #     continue
-                # elif type(intersection) == Polygon:
-                #     print("The intersection is a polygon.")
-                #     print("area: ", intersection.area)
-                #     #TODO: create a method to check area without calculating intersection
-                #     if intersection.area > 0.0000001:
-                #         if foo.within(boo):
-                #             intersection = foo.exterior.coords
-                #         elif boo.within(foo):
-                #             intersection = boo.exterior.coords
-                #         else: 
-                #             intersection = sutherland_hodgman(list(foo.exterior.coords), list(boo.exterior.coords))
-                #         if intersection:
-                #             print("here!!!")
-                #             folium.Polygon(locations=intersection, color="yellow", fill=True, fill_color="yellow", fill_opacity=0.5).add_to(fg_2008_2009)
-                #     # do something with the polygon
-                # elif type(intersection) == MultiPolygon:
-                #     print("The intersection is a multi-polygon.")
-                #     # do something with the multi-polygon
-                # elif type(intersection) == GeometryCollection:
-                #     print("The intersection is a geometry collection.")
-                #     # do something with the geometry collection
-                # else:
-                #     print("Unknown geometry type returned.")
-                
-
+    # add all layers to the basemap
     fg_2008.add_to(m)
     fg_2008_2009.add_to(m)
     fg_2009.add_to(m)
+    fg_2009_2010.add_to(m)
     fg_2010.add_to(m)
+    fg_2010_2011.add_to(m)
     fg_2011.add_to(m)
+    fg_2011_2012.add_to(m)
     fg_2012.add_to(m)
+    fg_2012_2013.add_to(m)
     fg_2013.add_to(m)
+    fg_2013_2014.add_to(m)
     fg_2014.add_to(m)
+    fg_2014_2015.add_to(m)
     fg_2015.add_to(m)
+    fg_2015_2016.add_to(m)
     fg_2016.add_to(m)
+    fg_2016_2017.add_to(m)
     fg_2017.add_to(m)
+    fg_2017_2018.add_to(m)
     fg_2018.add_to(m)
+    fg_2018_2019.add_to(m)
     fg_2019.add_to(m)
+    fg_2019_2020.add_to(m)
     fg_2020.add_to(m)
+    fg_2020_2021.add_to(m)
     fg_2021.add_to(m)
 
+    # add search to map
     Geocoder().add_to(m)
+
+    # add legend
     folium.LayerControl().add_to(m)
+
+    # save map to data folder
     m.save("data/map-time.html")
 
 def create_zone_map(features):
-    '''creates a folium map'''
+    '''creates a folium map that splits features into layers based on types of zones'''
+
+    # create basemap
     m = folium.Map(location=OTTAWA, zoom_start=13)
-    fg_all_zones = folium.FeatureGroup(name="All Zones")
+
+    # initialize layers for each type of zone
+    fg_residential = folium.FeatureGroup(name="Residential Zones")
+    fg_institutional = folium.FeatureGroup(name="Institutional Zones")
+    fg_open_space = folium.FeatureGroup(name="Open Space Leisure Zones")
+    fg_environmental = folium.FeatureGroup(name="Environmental Zones")
+    fg_commercial = folium.FeatureGroup(name="Commercial Zones")
+    fg_industrial = folium.FeatureGroup(name="Industrial Zones")
+    fg_transportation = folium.FeatureGroup(name="Transportation Zones")
+    fg_rural = folium.FeatureGroup(name="Rural Zones")
+    fg_other = folium.FeatureGroup(name="Other Zones")
 
     for feature in features:
         coordinates = convert_crs(feature.geometry['rings'][0])
         zone = feature.attributes["PARENTZONE"]
-
         color = get_color(zone)
-        polygon = folium.Polygon(locations=coordinates, color=color, fill=True, fill_color=color, fill_opacity=0.5)
-        polygon.add_to(fg_all_zones)
 
-    fg_all_zones.add_to(m)
+        polygon = folium.Polygon(locations=coordinates, color=color, fill=True, fill_color=color, fill_opacity=0.5)
+
+        if zone in RESIDENTIAL_ZONES:
+            polygon.add_to(fg_residential)
+        elif zone in INSTITUTIONAL_ZONES:
+            polygon.add_to(fg_institutional)
+        elif zone in OPEN_SPACE_LEISURE_ZONES:
+            polygon.add_to(fg_open_space)
+        elif zone in ENVIRONMENTAL_ZONES:
+            polygon.add_to(fg_environmental)
+        elif zone in COMMERICAL_ZONES:
+            polygon.add_to(fg_commercial)
+        elif zone in INDUSTRIAL_ZONES:
+            polygon.add_to(fg_industrial)
+        elif zone in TRANSPORTATION_ZONES:
+            polygon.add_to(fg_transportation)
+        elif zone in RURAL_ZONES:
+            polygon.add_to(fg_rural)
+        elif zone in OTHER_ZONES:
+            polygon.add_to(fg_other)
+
+    # add layers to map    
+    fg_residential.add_to(m)
+    fg_institutional.add_to(m)
+    fg_open_space.add_to(m)
+    fg_environmental.add_to(m)
+    fg_commercial.add_to(m)
+    fg_industrial.add_to(m)
+    fg_transportation.add_to(m)
+    fg_rural.add_to(m)
+    fg_other.add_to(m)
+
+    # add search bar to map
     Geocoder().add_to(m)
+
+    # add legend to map 
     folium.LayerControl().add_to(m)
+
+    # save map to data folder
     m.save("data/map.html")
 
 def same_side(edge_start, edge_end, p):
@@ -284,7 +308,6 @@ def main():
     print("starting .. ")
     features = get_features()
     print("retrieved " + str(len(features)) + " features")
-    # create maps 
     # create_zone_map(features)
     create_timeline_map(features)
 
