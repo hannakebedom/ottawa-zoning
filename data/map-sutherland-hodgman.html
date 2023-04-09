@@ -25,7 +25,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_e708bde90a4d1e60b4c4b861234e4764 {
+                #map_d5a475f01e3f52835c30dc418a9e1c65 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -41,14 +41,14 @@
 <body>
     
     
-            <div class="folium-map" id="map_e708bde90a4d1e60b4c4b861234e4764" ></div>
+            <div class="folium-map" id="map_d5a475f01e3f52835c30dc418a9e1c65" ></div>
         
 </body>
 <script>
     
     
-            var map_e708bde90a4d1e60b4c4b861234e4764 = L.map(
-                "map_e708bde90a4d1e60b4c4b861234e4764",
+            var map_d5a475f01e3f52835c30dc418a9e1c65 = L.map(
+                "map_d5a475f01e3f52835c30dc418a9e1c65",
                 {
                     center: [45.4215, -75.6972],
                     crs: L.CRS.EPSG3857,
@@ -62,17 +62,35 @@
 
         
     
-            var tile_layer_9f414baee7fda0817a8ce874cd5b6778 = L.tileLayer(
+            var tile_layer_03c907fe0d16dbfefdac85cb0b2f302b = L.tileLayer(
                 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {"attribution": "Data by \u0026copy; \u003ca target=\"_blank\" href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\"_blank\" href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
-            ).addTo(map_e708bde90a4d1e60b4c4b861234e4764);
+            ).addTo(map_d5a475f01e3f52835c30dc418a9e1c65);
+        
+    
+            var polygon_00c6a3fc59e62f4c31c240f5d792a348 = L.polygon(
+                [[45.41560770492214, -75.67968677643513], [45.423823130398006, -75.67968677643513], [45.423823130398006, -75.69377985257785], [45.41560770492214, -75.69377985257785], [45.41560770492214, -75.67968677643513]],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.5, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 1.0, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_d5a475f01e3f52835c30dc418a9e1c65);
+        
+    
+            var polygon_4fd0f177f1e3ce008fd8e48833d7cd0d = L.polygon(
+                [[45.42650545942101, -75.6927447678894], [45.41991117211023, -75.68709161305293], [45.4264495788662, -75.6804829954265], [45.42650545942101, -75.6927447678894]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.5, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 1.0, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_d5a475f01e3f52835c30dc418a9e1c65);
+        
+    
+            var polygon_0dc97e78d2914469c75fa8bc11264353 = L.polygon(
+                [[45.42382313038647, -75.69044525908701], [45.41991117213255, -75.68709161297964], [45.42382313035899, -75.68313764727303]],
+                {"bubblingMouseEvents": true, "color": "yellow", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "yellow", "fillOpacity": 0.5, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 1.0, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_d5a475f01e3f52835c30dc418a9e1c65);
         
     
             L.Control.geocoder(
                 {"collapsed": false, "defaultMarkGeocode": true, "position": "topright"}
             ).on('markgeocode', function(e) {
-                map_e708bde90a4d1e60b4c4b861234e4764.setView(e.geocode.center, 11);
-            }).addTo(map_e708bde90a4d1e60b4c4b861234e4764);
+                map_d5a475f01e3f52835c30dc418a9e1c65.setView(e.geocode.center, 11);
+            }).addTo(map_d5a475f01e3f52835c30dc418a9e1c65);
 
         
 </script>
