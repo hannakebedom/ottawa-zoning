@@ -9,7 +9,7 @@ from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
 OTTAWA = [45.4215, -75.6972]
 
 # City of Ottawa Zoning: https://ottawa.ca/en/living-ottawa/laws-licences-and-permits/laws/laws-z/zoning-law-no-2008-250/zoning-law-2008-250-consolidation#
-RESIDENTIAL_ZONES = {"R1", "R2", "R3", "R4", "R5", "RM"} # brown
+RESIDENTIAL_ZONES = {"R1", "R2", "R3", "R4", "R5", "RM"}
 INSTITUTIONAL_ZONES = {"I1", "I2"}
 OPEN_SPACE_LEISURE_ZONES = {"L1", "L2", "L3", "O1"}
 ENVIRONMENTAL_ZONES = {"EP"}
@@ -61,7 +61,12 @@ def create_timeline_map(features):
     '''creates a folium map that divides zones into layers based on consolidation year'''
 
     # create basemap
-    m = folium.Map(location=OTTAWA, zoom_start=13)
+    m = folium.Map(location=OTTAWA, zoom_start=13, name="Ottawa Zones by Consolidation Year")
+
+    # create map title
+    title_html = '''
+             <h3 align="center" style="font-size:16px"><b>{}</b></h3>
+             '''.format("City of Ottawa Zones by Consolidation Date")
 
     # initialize layers for each year
     fg_2008, features_2008 = folium.FeatureGroup(name="2008"), []
@@ -167,7 +172,7 @@ def create_timeline_map(features):
                 if intersection:
                     print("drawing intersection . . .")
                     intersection_polygon = Polygon(intersection)
-                    folium.Polygon(locations=intersection_polygon.exterior.coords, color="#25ff3e", fill=True, fill_color="#25ff3e", fill_opacity=0.7).add_to(intermediary_layers[i])
+                    folium.Polygon(locations=intersection_polygon.exterior.coords, color="#faff00", fill=True, fill_color="#faff00", fill_opacity=0.7).add_to(intermediary_layers[i])
 
     # add all layers to the basemap
     fg_2008.add_to(m)
@@ -204,14 +209,22 @@ def create_timeline_map(features):
     # add legend
     folium.LayerControl().add_to(m)
 
+    # add title to map
+    m.get_root().html.add_child(folium.Element(title_html))
+
     # save map to data folder
-    m.save("data/map-time.html")
+    m.save("data/map-timeline.html")
 
 def create_zone_map(features):
     '''creates a folium map that splits features into layers based on types of zones'''
 
     # create basemap
     m = folium.Map(location=OTTAWA, zoom_start=13)
+
+    # create map title
+    title_html = '''
+             <h3 align="center" style="font-size:16px"><b>{}</b></h3>
+             '''.format("City of Ottawa Zones by Type")
 
     # initialize layers for each type of zone
     fg_residential = folium.FeatureGroup(name="Residential Zones")
@@ -267,8 +280,11 @@ def create_zone_map(features):
     # add legend to map 
     folium.LayerControl().add_to(m)
 
+    # add title to map
+    m.get_root().html.add_child(folium.Element(title_html))
+
     # save map to data folder
-    m.save("data/map.html")
+    m.save("data/map-zone.html")
 
 def same_side(edge_start, edge_end, p):
     '''given an edge and a point determine if the point lies on the same side as the rest of the polygon'''
@@ -289,10 +305,10 @@ def sutherland_hodgman(subject_polygon,clipping_polygon):
         subject_polygon = Polygon(output_polygon[:]).exterior.coords # cast as shapely polygon to ensure that vertices are listed in clockwise order
         subject_edges = [tuple(subject_polygon[i:i+2]) for i in range(len(subject_polygon)-1)]
         output_polygon = []
-        clip_start, clip_end  = clip_edge[0], clip_edge[1] # rename
+        clip_start, clip_end  = clip_edge[0], clip_edge[1]
         
         for subject_edge in subject_edges:
-            subject_start, subject_end = subject_edge[0], subject_edge[1] # rename
+            subject_start, subject_end = subject_edge[0], subject_edge[1]
             if same_side(clip_start, clip_end, subject_end):
                 if not same_side(clip_start, clip_end, subject_start):
                     intersection_point = intersection(clip_start, clip_end, subject_start, subject_end)
